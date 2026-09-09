@@ -453,8 +453,23 @@
       const data = await resp.json();
       const events = data.events || [];
 
-      // 音乐相关关键词（更精确）
-      const musicKeywords = ['album', 'single', 'song', 'music', 'band', 'singer', 'musician', 'concert', 'tour', 'Grammy', 'MTV', 'Billboard', 'Rock and Roll Hall of Fame', 'rapper', 'hip hop', 'pop music', 'rock music', 'jazz', 'classical music', 'opera', 'symphony', 'guitar', 'piano', 'drum', 'violin', 'cello', 'flute', 'trumpet', 'saxophone', 'keyboard', 'bass guitar', 'drummer', 'guitarist', 'pianist', 'vocalist', 'lead singer', 'songwriter', 'composer', 'conductor', 'orchestra', 'choir', 'chorus', 'music video', 'music award', 'music festival', 'music chart', 'music industry', 'music label', 'record label', 'recording studio', 'music producer', 'DJ', 'disc jockey', 'rap', 'R&B', 'rhythm and blues', 'country music', 'folk music', 'blues', 'reggae', 'electronic music', 'dance music', 'punk rock', 'heavy metal', 'alternative rock', 'indie music', 'K-pop', 'J-pop', 'C-pop', 'Mandopop', 'Cantopop', 'Hokkien pop', 'Taiwanese pop', 'Hong Kong pop', 'Chinese music', 'Japanese music', 'Korean music', 'Asian music', 'world music', 'latin music', 'reggaeton', 'salsa', 'merengue', 'bachata', 'tango', 'flamenco', 'fado', 'celtic music', 'new age music', 'ambient music', 'experimental music', 'avant-garde music', 'minimalist music', 'serial music', 'twelve-tone technique', 'atonality', 'polytonality', 'bitonality', 'polyrhythm', 'polymeter', 'microtonal music', 'just intonation', 'equal temperament', 'well temperament', 'meantone temperament', 'Pythagorean tuning', 'Werckmeister temperament', 'Kirnberger temperament', 'Valotti temperament', 'Young temperament', 'Bach temperament', 'Lehman temperament', 'O'Donnell temperament', 'Barnes temperament', 'Sylvestre temperament', 'Vogel temperament', 'Lindley temperament', 'Boxall temperament', 'Di Veroli temperament', 'Prony temperament', 'Rasch temperament', 'Sparschuh temperament', 'Schlick temperament', 'Arnolt temperament', 'Kellner temperament', 'Billeter temperament', 'Kyle temperament', 'Goffrie temperament', 'Dubreuil temperament', 'Denley temperament', 'Smart temperament', 'Ferguson temperament', 'Malcolmson temperament', 'Billeter temperament', 'Kyle temperament', 'Goffrie temperament', 'Dubreuil temperament', 'Denley temperament', 'Smart temperament', 'Ferguson temperament', 'Malcolmson temperament'];
+      // 音乐相关关键词（简洁准确）
+      const musicKeywords = [
+        'album', 'single', 'song', 'music', 'band', 'singer', 'musician',
+        'concert', 'tour', 'Grammy', 'MTV', 'Billboard', 'Rock and Roll Hall of Fame',
+        'rapper', 'hip hop', 'pop music', 'rock music', 'jazz', 'classical music',
+        'opera', 'symphony', 'guitar', 'piano', 'drum', 'violin', 'cello',
+        'drummer', 'guitarist', 'pianist', 'vocalist', 'lead singer', 'songwriter',
+        'composer', 'conductor', 'orchestra', 'choir', 'music video', 'music award',
+        'music festival', 'music chart', 'music label', 'record label', 'music producer',
+        'DJ', 'disc jockey', 'rap', 'R&B', 'rhythm and blues', 'country music',
+        'folk music', 'blues', 'reggae', 'electronic music', 'dance music',
+        'punk rock', 'heavy metal', 'alternative rock', 'indie music',
+        'K-pop', 'J-pop', 'C-pop', 'Mandopop', 'Cantopop',
+        'Chinese music', 'Japanese music', 'Korean music', 'world music',
+        'latin music', 'reggaeton', 'salsa', 'tango', 'flamenco',
+        'new age music', 'ambient music', 'experimental music'
+      ];
 
       const musicEvents = [];
       for (const ev of events) {
