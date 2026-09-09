@@ -574,28 +574,37 @@
         'new age music', 'ambient music', 'experimental music'
       ];
 
-      const musicEvents = [];
+      const musicEventsSameYear = [];
+      const musicEventsAllYears = [];
+      const queryYear = parseInt(parts[0]);
+      
       for (const ev of events) {
         const text = ev.text || '';
         const lowerText = text.toLowerCase();
         const isMusic = musicKeywords.some(kw => lowerText.includes(kw.toLowerCase()));
         if (!isMusic) continue;
-        // 只保留与查询日期同年的事件
-        const queryYear = parseInt(parts[0]);
-        if (ev.year && ev.year !== queryYear) continue;
         if (!isPositiveEvent(text)) continue;
 
         const page = (ev.pages && ev.pages[0]) || {};
-        musicEvents.push({
-          chartName: '音乐大事记',
+        const eventData = {
+          chartName: ev.year === queryYear ? '音乐大事记' : '历史上的今天 · 音乐',
           chartDate: dateStr,
           url: page.content_urls ? page.content_urls.desktop.page : '',
-          rank: musicEvents.length + 1,
+          rank: 0, // 后面重新排序
           title: text,
           artist: ev.year ? ev.year + '年' : ''
-        });
+        };
+        
+        // 分别收集同年和所有年份的事件
+        if (ev.year === queryYear) {
+          musicEventsSameYear.push({...eventData, rank: musicEventsSameYear.length + 1});
+        }
+        musicEventsAllYears.push({...eventData, rank: musicEventsAllYears.length + 1});
       }
 
+      // 优先返回同年事件，如果没有则返回历史上同一天的事件
+      const musicEvents = musicEventsSameYear.length > 0 ? musicEventsSameYear : musicEventsAllYears;
+      
       if (musicEvents.length > 0) {
         return {
           status: 'ok',
@@ -651,15 +660,15 @@
       // 电影相关关键词（移除可能与音乐重叠的词，如musical/score/soundtrack/composer）
       const filmKeywords = ['film', 'movie', 'cinema', 'director', 'actor', 'actress', 'premiere', 'release', 'Academy Award', 'Oscar', 'Cannes', 'Venice Film Festival', 'Berlin Film Festival', 'Golden Globe', 'screen', 'studio', 'Hollywood', 'Bollywood', 'animation', 'documentary', 'film festival', 'motion picture', 'box office', 'blockbuster', 'sequel', 'prequel', 'remake', 'adaptation', 'screenplay', 'script', 'producer', 'production', 'filming', 'shooting', 'casting', 'trailer', 'teaser', 'poster', 'cinematography', 'editing', 'visual effects', 'special effects', '3D', 'IMAX', 'starring', 'cast', 'crew', 'set', 'location', 'genre', 'comedy', 'drama', 'thriller', 'horror', 'sci-fi', 'science fiction', 'fantasy', 'adventure', 'action', 'western', 'mystery', 'crime', 'war', 'history', 'biography', 'family', 'children', 'teen', 'romance', 'romantic', 'love story'];
 
-      const filmEvents = [];
+      const filmEventsSameYear = [];
+      const filmEventsAllYears = [];
+      const queryYear = parseInt(parts[0]);
+      
       for (const ev of events) {
         const text = ev.text || '';
         const lowerText = text.toLowerCase();
         const isFilm = filmKeywords.some(kw => lowerText.includes(kw.toLowerCase()));
         if (!isFilm) continue;
-        // 只保留与查询日期同年的事件
-        const queryYear = parseInt(parts[0]);
-        if (ev.year && ev.year !== queryYear) continue;
         // 电影相关事件不使用isPositiveEvent排除，因为很多电影事件可能包含战争、犯罪等关键词
         // 但仍需排除明显的政治/负面内容
         if (EXCLUDE_KEYWORDS.some(kw => lowerText.includes(kw.toLowerCase()))) continue;
@@ -668,16 +677,25 @@
         // 判断是否为爱情片（简单关键词匹配）
         const isRomance = /romance|romantic|love story|love film|chick flick|romantic comedy|rom-com/i.test(text);
 
-        filmEvents.push({
+        const filmData = {
           id: 'film-' + ev.year + '-' + text.substring(0, 20).replace(/[^a-z0-9]/gi, ''),
           title: text,
           romance: isRomance,
           releases: [{ date: ev.year ? ev.year + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0') : dateStr, region: '国际' }],
-          genres: ['电影大事记'],
+          genres: ev.year === queryYear ? ['电影大事记'] : ['历史上的今天 · 电影'],
           url: page.content_urls ? page.content_urls.desktop.page : '',
           references: page.content_urls ? [page.content_urls.desktop.page] : []
-        });
+        };
+        
+        // 分别收集同年和所有年份的事件
+        if (ev.year === queryYear) {
+          filmEventsSameYear.push(filmData);
+        }
+        filmEventsAllYears.push(filmData);
       }
+
+      // 优先返回同年事件，如果没有则返回历史上同一天的事件
+      const filmEvents = filmEventsSameYear.length > 0 ? filmEventsSameYear : filmEventsAllYears;
 
       if (filmEvents.length > 0) {
         return {
