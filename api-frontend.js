@@ -657,8 +657,8 @@
       const data = await resp.json();
       const events = data.events || [];
 
-      // 电影相关关键词（移除可能与音乐重叠的词，如musical/score/soundtrack/composer）
-      const filmKeywords = ['film', 'movie', 'cinema', 'director', 'actor', 'actress', 'premiere', 'release', 'Academy Award', 'Oscar', 'Cannes', 'Venice Film Festival', 'Berlin Film Festival', 'Golden Globe', 'screen', 'studio', 'Hollywood', 'Bollywood', 'animation', 'documentary', 'film festival', 'motion picture', 'box office', 'blockbuster', 'sequel', 'prequel', 'remake', 'adaptation', 'screenplay', 'script', 'producer', 'production', 'filming', 'shooting', 'casting', 'trailer', 'teaser', 'poster', 'cinematography', 'editing', 'visual effects', 'special effects', '3D', 'IMAX', 'starring', 'cast', 'crew', 'set', 'location', 'genre', 'comedy', 'drama', 'thriller', 'horror', 'sci-fi', 'science fiction', 'fantasy', 'adventure', 'action', 'western', 'mystery', 'crime', 'war', 'history', 'biography', 'family', 'children', 'teen', 'romance', 'romantic', 'love story'];
+      // 电影相关关键词（移除容易被误匹配的词，如cast/set/action/war/history等）
+      const filmKeywords = ['film', 'movie', 'cinema', 'director', 'actor', 'actress', 'premiere', 'released', 'Academy Award', 'Oscar', 'Cannes', 'Venice Film Festival', 'Berlin Film Festival', 'Golden Globe', 'Hollywood', 'Bollywood', 'animation', 'documentary', 'film festival', 'motion picture', 'box office', 'blockbuster', 'sequel', 'prequel', 'remake', 'adaptation', 'screenplay', 'script', 'producer', 'filming', 'shooting', 'casting', 'trailer', 'teaser', 'poster', 'cinematography', 'visual effects', 'special effects', '3D film', 'IMAX', 'starring', 'comedy film', 'drama film', 'thriller film', 'horror film', 'sci-fi film', 'science fiction film', 'fantasy film', 'adventure film', 'western film', 'mystery film', 'crime film', 'biography film', 'family film', 'romance film', 'romantic comedy', 'love story film'];
 
       const filmEventsSameYear = [];
       const filmEventsAllYears = [];
