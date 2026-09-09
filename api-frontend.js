@@ -580,6 +580,9 @@
         const lowerText = text.toLowerCase();
         const isMusic = musicKeywords.some(kw => lowerText.includes(kw.toLowerCase()));
         if (!isMusic) continue;
+        // 只保留与查询日期同年的事件
+        const queryYear = parseInt(parts[0]);
+        if (ev.year && ev.year !== queryYear) continue;
         if (!isPositiveEvent(text)) continue;
 
         const page = (ev.pages && ev.pages[0]) || {};
@@ -645,8 +648,8 @@
       const data = await resp.json();
       const events = data.events || [];
 
-      // 电影相关关键词（更广泛）
-      const filmKeywords = ['film', 'movie', 'cinema', 'director', 'actor', 'actress', 'premiere', 'release', 'Academy Award', 'Oscar', 'Cannes', 'Venice Film Festival', 'Berlin Film Festival', 'Golden Globe', 'screen', 'studio', 'Hollywood', 'Bollywood', 'animation', 'documentary', 'film festival', 'motion picture', 'box office', 'blockbuster', 'sequel', 'prequel', 'remake', 'adaptation', 'screenplay', 'script', 'producer', 'production', 'filming', 'shooting', 'casting', 'trailer', 'teaser', 'poster', 'soundtrack', 'score', 'composer', 'cinematography', 'editing', 'visual effects', 'special effects', '3D', 'IMAX', 'starring', 'cast', 'crew', 'set', 'location', 'genre', 'comedy', 'drama', 'thriller', 'horror', 'sci-fi', 'science fiction', 'fantasy', 'adventure', 'action', 'western', 'musical', 'mystery', 'crime', 'war', 'history', 'biography', 'family', 'children', 'teen', 'romance', 'romantic', 'love story'];
+      // 电影相关关键词（移除可能与音乐重叠的词，如musical/score/soundtrack/composer）
+      const filmKeywords = ['film', 'movie', 'cinema', 'director', 'actor', 'actress', 'premiere', 'release', 'Academy Award', 'Oscar', 'Cannes', 'Venice Film Festival', 'Berlin Film Festival', 'Golden Globe', 'screen', 'studio', 'Hollywood', 'Bollywood', 'animation', 'documentary', 'film festival', 'motion picture', 'box office', 'blockbuster', 'sequel', 'prequel', 'remake', 'adaptation', 'screenplay', 'script', 'producer', 'production', 'filming', 'shooting', 'casting', 'trailer', 'teaser', 'poster', 'cinematography', 'editing', 'visual effects', 'special effects', '3D', 'IMAX', 'starring', 'cast', 'crew', 'set', 'location', 'genre', 'comedy', 'drama', 'thriller', 'horror', 'sci-fi', 'science fiction', 'fantasy', 'adventure', 'action', 'western', 'mystery', 'crime', 'war', 'history', 'biography', 'family', 'children', 'teen', 'romance', 'romantic', 'love story'];
 
       const filmEvents = [];
       for (const ev of events) {
@@ -654,6 +657,9 @@
         const lowerText = text.toLowerCase();
         const isFilm = filmKeywords.some(kw => lowerText.includes(kw.toLowerCase()));
         if (!isFilm) continue;
+        // 只保留与查询日期同年的事件
+        const queryYear = parseInt(parts[0]);
+        if (ev.year && ev.year !== queryYear) continue;
         // 电影相关事件不使用isPositiveEvent排除，因为很多电影事件可能包含战争、犯罪等关键词
         // 但仍需排除明显的政治/负面内容
         if (EXCLUDE_KEYWORDS.some(kw => lowerText.includes(kw.toLowerCase()))) continue;
