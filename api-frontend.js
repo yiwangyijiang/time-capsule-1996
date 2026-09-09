@@ -306,9 +306,12 @@
         domesticEvents = SPECIAL_DATE_DATA[dateStr].domesticEvents;
       }
 
+      // 合并国内和国际事件为一个数组
+      const allEvents = [...domesticEvents, ...filtered.slice(0, 12)];
+
       return {
         status: 'ok',
-        data: filtered.slice(0, 12),
+        data: allEvents,
         source: {
           name: 'Wikipedia On This Day',
           url: 'https://en.wikipedia.org/wiki/Wikipedia:On_this_day'
@@ -343,46 +346,38 @@
       music: {
         status: 'ok',
         data: [
-          { rank: 1, song: 'How Do U Want It / California Love', artist: '2Pac Featuring K-Ci And JoJo' },
-          { rank: 2, song: "You're Makin' Me High / Let It Flow", artist: 'Toni Braxton' },
-          { rank: 3, song: 'Give Me One Reason', artist: 'Tracy Chapman' },
-          { rank: 4, song: 'Macarena (Bayside Boys Mix)', artist: 'Los del Rio' },
-          { rank: 5, song: 'Tha Crossroads', artist: 'Bone Thugs-N-Harmony' },
-          { rank: 6, song: 'Twisted', artist: 'Keith Sweat' },
-          { rank: 7, song: "I Can't Sleep Baby (If I)", artist: 'R. Kelly' },
-          { rank: 8, song: "C'mon N' Ride It (The Train)", artist: "Quad City DJ's" },
-          { rank: 9, song: 'Change The World', artist: 'Eric Clapton' },
-          { rank: 10, song: 'Because You Loved Me (From "Up Close & Personal")', artist: 'Celine Dion' }
+          { chartName: 'Billboard Hot 100', chartDate: '1996-07-20', url: 'https://www.billboard.com/charts/hot-100/1996-07-20/', rank: 1, title: 'How Do U Want It / California Love', artist: '2Pac Featuring K-Ci And JoJo' },
+          { chartName: 'Billboard Hot 100', chartDate: '1996-07-20', url: 'https://www.billboard.com/charts/hot-100/1996-07-20/', rank: 2, title: "You're Makin' Me High / Let It Flow", artist: 'Toni Braxton' },
+          { chartName: 'Billboard Hot 100', chartDate: '1996-07-20', url: 'https://www.billboard.com/charts/hot-100/1996-07-20/', rank: 3, title: 'Give Me One Reason', artist: 'Tracy Chapman' },
+          { chartName: 'Billboard Hot 100', chartDate: '1996-07-20', url: 'https://www.billboard.com/charts/hot-100/1996-07-20/', rank: 4, title: 'Macarena (Bayside Boys Mix)', artist: 'Los del Rio' },
+          { chartName: 'Billboard Hot 100', chartDate: '1996-07-20', url: 'https://www.billboard.com/charts/hot-100/1996-07-20/', rank: 5, title: 'Tha Crossroads', artist: 'Bone Thugs-N-Harmony' },
+          { chartName: 'Billboard Hot 100', chartDate: '1996-07-20', url: 'https://www.billboard.com/charts/hot-100/1996-07-20/', rank: 6, title: 'Twisted', artist: 'Keith Sweat' },
+          { chartName: 'Billboard Hot 100', chartDate: '1996-07-20', url: 'https://www.billboard.com/charts/hot-100/1996-07-20/', rank: 7, title: "I Can't Sleep Baby (If I)", artist: 'R. Kelly' },
+          { chartName: 'Billboard Hot 100', chartDate: '1996-07-20', url: 'https://www.billboard.com/charts/hot-100/1996-07-20/', rank: 8, title: "C'mon N' Ride It (The Train)", artist: "Quad City DJ's" },
+          { chartName: 'Billboard Hot 100', chartDate: '1996-07-20', url: 'https://www.billboard.com/charts/hot-100/1996-07-20/', rank: 9, title: 'Change The World', artist: 'Eric Clapton' },
+          { chartName: 'Billboard Hot 100', chartDate: '1996-07-20', url: 'https://www.billboard.com/charts/hot-100/1996-07-20/', rank: 10, title: 'Because You Loved Me (From "Up Close & Personal")', artist: 'Celine Dion' }
         ],
-        chartName: 'Billboard Hot 100',
-        chartDate: '1996-07-20',
-        chartType: 'weekly',
-        relationToDate: '该期约在7月18日前后出版，略晚于7月15日；是距离7月15日最近的可获取完整前十名的官方榜单。',
-        publisher: 'Billboard / Penske Media Corporation',
-        region: '美国',
         source: { name: 'Billboard Official Charts', url: 'https://www.billboard.com/charts/hot-100/1996-07-20/' },
-        note: 'Billboard Hot 100周榜，榜单日期1996-07-20。华语榜单、日本Oricon、英国OCC等其他地区榜单为资料缺口。'
+        note: 'Billboard Hot 100周榜，榜单日期1996-07-20（距7月15日最近的可获取完整前十名的官方榜单）。华语榜单、日本Oricon、英国OCC等其他地区榜单为资料缺口。'
       },
       movies: {
         status: 'ok',
         data: [
-          { title: 'Courage Under Fire', cnTitle: '生死豪情', region: '美国', releaseDate: '1996-07-12', genre: '剧情/战争/悬疑/动作', note: '距7月15日最近的首映日影片' },
-          { title: 'Kingpin', cnTitle: '王牌保龄球', region: '英国', releaseDate: '1996-07-12', genre: '喜剧/运动', note: '距7月15日最近的首映日影片' },
-          { title: 'Independence Day', cnTitle: '独立日', region: '美国', releaseDate: '1996-07-03', genre: '科幻/动作/灾难', note: '7月15日仍在热映中' },
-          { title: '新上海滩', cnTitle: '新上海滩', region: '中国香港', releaseDate: '1996-07-13', genre: '动作/惊悚/犯罪' },
-          { title: 'Mission: Impossible', cnTitle: '碟中谍', region: '日本', releaseDate: '1996-07-13', genre: '动作/冒险/惊悚' },
-          { title: '目を閉じて抱いて', cnTitle: '闭上眼抱紧我', region: '日本', releaseDate: '1996-07-13', genre: '爱情', note: '爱情片，改编自内田春菊同名恋爱漫画' },
-          { title: 'マンハッタン花物語', cnTitle: '曼哈顿花物语', region: '日本', releaseDate: '1996-07-13', genre: '爱情', note: '爱情片，描述为浪漫爱情故事' },
-          { title: '好きと言えなくて', cnTitle: '说不出喜欢你', region: '日本', releaseDate: '1996-07-13', genre: '喜剧/爱情', note: '浪漫爱情喜剧' },
-          { title: 'Workaholic', cnTitle: '（德国本土片）', region: '德国', releaseDate: '1996-07-11', genre: '喜剧/爱情' },
-          { title: 'Wenn Lucy springt', cnTitle: '如果露西跌倒 (If Lucy Fell)', region: '德国', releaseDate: '1996-07-11', genre: '喜剧/爱情' },
-          { title: "Papa, j'ai une maman pour toi", cnTitle: '好事成双 (It Takes Two)', region: '法国', releaseDate: '1996-07-10', genre: '喜剧/家庭/爱情' }
+          { id: 'courage-under-fire', title: 'Courage Under Fire 生死豪情', romance: false, releases: [{ date: '1996-07-12', region: '美国' }], genres: ['剧情', '战争', '悬疑', '动作'], url: '', references: [] },
+          { id: 'kingpin', title: 'Kingpin 王牌保龄球', romance: false, releases: [{ date: '1996-07-12', region: '英国' }], genres: ['喜剧', '运动'], url: '', references: [] },
+          { id: 'independence-day', title: 'Independence Day 独立日', romance: false, releases: [{ date: '1996-07-03', region: '美国' }], genres: ['科幻', '动作', '灾难'], url: '', references: [], note: '7月15日仍在热映中' },
+          { id: 'shanghai-grand', title: '新上海滩', romance: false, releases: [{ date: '1996-07-13', region: '中国香港' }], genres: ['动作', '惊悚', '犯罪'], url: '', references: [] },
+          { id: 'mission-impossible', title: 'Mission: Impossible 碟中谍', romance: false, releases: [{ date: '1996-07-13', region: '日本' }], genres: ['动作', '冒险', '惊悚'], url: '', references: [] },
+          { id: 'me-wo-tojite-daite', title: '目を閉じて抱いて 闭上眼抱紧我', romance: true, releases: [{ date: '1996-07-13', region: '日本' }], genres: ['爱情'], url: '', references: [], note: '改编自内田春菊同名恋爱漫画' },
+          { id: 'manhattan-hana-monogatari', title: 'マンハッタン花物語 曼哈顿花物语', romance: true, releases: [{ date: '1996-07-13', region: '日本' }], genres: ['爱情'], url: '', references: [], note: '描述为浪漫爱情故事' },
+          { id: 'suki-to-ienakute', title: '好きと言えなくて 说不出喜欢你', romance: true, releases: [{ date: '1996-07-13', region: '日本' }], genres: ['喜剧', '爱情'], url: '', references: [], note: '浪漫爱情喜剧' },
+          { id: 'workaholic', title: 'Workaholic（德国本土片）', romance: true, releases: [{ date: '1996-07-11', region: '德国' }], genres: ['喜剧', '爱情'], url: '', references: [] },
+          { id: 'if-lucy-fell', title: 'Wenn Lucy springt 如果露西跌倒 (If Lucy Fell)', romance: true, releases: [{ date: '1996-07-11', region: '德国' }], genres: ['喜剧', '爱情'], url: '', references: [] },
+          { id: 'it-takes-two', title: "Papa, j'ai une maman pour toi 好事成双 (It Takes Two)", romance: true, releases: [{ date: '1996-07-10', region: '法国' }], genres: ['喜剧', '家庭', '爱情'], url: '', references: [] }
         ],
-        dayPremieres: [],
         dayPremiereNote: '1996年7月15日为周一。在八大主要电影市场（美国、中国内地、香港、台湾、日本、英国、法国、德国）中，未核实到任何一部影片于当天进行院线首映/公映。各市场均有固定的新片首映日（美/英为周五、法国为周三、德国为周四、日本为周六、香港多为周四/周六），周一通常无新片开画。',
-        romanceNote: '以上为距7月15日最近首映日（7月10-13日）的在映爱情片，7月15日当天处于在映状态。',
         source: { name: '各地区权威电影数据库（Movie Walker、FILMSTARTS、AlloCiné等）', url: '' },
-        note: '1996-07-15当天八大电影市场无院线首映（周一效应）。以上为近期在映影片及爱情片清单。'
+        note: '1996-07-15当天八大电影市场无院线首映（周一效应）。以上为距7月15日最近首映日（7月10-13日）的在映影片，其中6部为爱情片。'
       }
     }
   };
