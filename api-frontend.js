@@ -300,10 +300,46 @@
       // 按年份排序（新的在前）
       filtered.sort((a, b) => b.year - a.year);
 
-      // 检查是否有特定日期的国内事件
+      // 查询Wikipedia中文API获取国内事件
       let domesticEvents = [];
+      try {
+        const zhUrl = `https://zh.wikipedia.org/api/rest_v1/feed/onthisday/events/${month}/${day}`;
+        const zhResp = await originalFetch(zhUrl, {
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'TimeCapsule/1.0 (educational project)'
+          }
+        });
+        if (zhResp.ok) {
+          const zhData = await zhResp.json();
+          const zhEvents = zhData.events || [];
+          for (const ev of zhEvents) {
+            const text = ev.text || '';
+            if (!isPositiveEvent(text)) continue;
+            // 只保留中文事件（国内相关）
+            if (!/[\u4e00-\u9fa5]/.test(text)) continue;
+            const page = (ev.pages && ev.pages[0]) || {};
+            domesticEvents.push({
+              id: 'zh-' + ev.year + '-' + text.substring(0, 20).replace(/[^a-z0-9\u4e00-\u9fa5]/gi, ''),
+              title: text,
+              year: ev.year,
+              dateBasis: 'occurred',
+              country: '国内',
+              domestic: true,
+              url: page.content_urls ? page.content_urls.desktop.page : '',
+              sourceLabel: '维基百科',
+              references: page.content_urls ? [page.content_urls.desktop.page] : []
+            });
+          }
+          domesticEvents.sort((a, b) => b.year - a.year);
+        }
+      } catch (e) {
+        console.warn('Wikipedia中文API查询失败:', e.message);
+      }
+
+      // 检查是否有特定日期的国内事件（优先使用已核验资料）
       if (typeof SPECIAL_DATE_DATA !== 'undefined' && SPECIAL_DATE_DATA[dateStr] && SPECIAL_DATE_DATA[dateStr].domesticEvents) {
-        domesticEvents = SPECIAL_DATE_DATA[dateStr].domesticEvents;
+        domesticEvents = [...SPECIAL_DATE_DATA[dateStr].domesticEvents, ...domesticEvents];
       }
 
       // 合并国内和国际事件为一个数组
@@ -385,31 +421,155 @@
   };
 
   // ============ 音乐榜单 ============
-  function getMusic(dateStr) {
+  async function getMusic(dateStr) {
     // 检查是否有特定日期的数据
     if (SPECIAL_DATE_DATA[dateStr] && SPECIAL_DATE_DATA[dateStr].music) {
       return SPECIAL_DATE_DATA[dateStr].music;
     }
-    return {
-      status: 'unavailable',
-      data: [],
-      source: { name: '资料缺口', url: '' },
-      note: '音乐榜单历史数据为资料缺口。目前没有公开免费的API可查询1990年代Billboard Hot 100、英国OCC、日本Oricon及华语榜单的完整历史数据。'
-    };
+
+    // 从Wikipedia事件中筛选音乐相关内容
+    if (!dateStr) return { status: 'error', error: '缺少日期参数' };
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return { status: 'error', error: '日期格式错误' };
+    const month = parseInt(parts[1]);
+    const day = parseInt(parts[2]);
+
+    try {
+      const url = `https://en.wikipedia.org/api/rest_v1/feed/onthisday/events/${month}/${day}`;
+      const resp = await originalFetch(url, {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'TimeCapsule/1.0 (educational project)'
+        }
+      });
+      if (!resp.ok) throw new Error('Wikipedia API returned ' + resp.status);
+      const data = await resp.json();
+      const events = data.events || [];
+
+      // 音乐相关关键词
+      const musicKeywords = ['album', 'single', 'song', 'music', 'band', 'singer', 'musician', 'concert', 'tour', 'record', 'release', 'Grammy', 'MTV', 'Billboard', 'Rock and Roll Hall of Fame', 'rapper', 'hip hop', 'pop', 'rock', 'jazz', 'classical music', 'opera', 'symphony', 'guitar', 'piano', 'drum'];
+
+      const musicEvents = [];
+      for (const ev of events) {
+        const text = ev.text || '';
+        const lowerText = text.toLowerCase();
+        const isMusic = musicKeywords.some(kw => lowerText.includes(kw.toLowerCase()));
+        if (!isMusic) continue;
+        if (!isPositiveEvent(text)) continue;
+
+        const page = (ev.pages && ev.pages[0]) || {};
+        musicEvents.push({
+          chartName: '音乐大事记',
+          chartDate: dateStr,
+          url: page.content_urls ? page.content_urls.desktop.page : '',
+          rank: musicEvents.length + 1,
+          title: text,
+          artist: ev.year ? ev.year + '年' : ''
+        });
+      }
+
+      if (musicEvents.length > 0) {
+        return {
+          status: 'ok',
+          data: musicEvents.slice(0, 10),
+          source: { name: 'Wikipedia On This Day - 音乐相关事件', url: 'https://en.wikipedia.org/wiki/Wikipedia:On_this_day' },
+          note: '以下为当天发生的音乐相关事件（专辑发行、单曲发布、音乐奖等），非完整榜单。完整历史榜单数据为资料缺口。'
+        };
+      }
+
+      return {
+        status: 'unavailable',
+        data: [],
+        source: { name: '资料缺口', url: '' },
+        note: '当天未查询到音乐相关事件。完整音乐榜单历史数据为资料缺口，目前没有公开免费的API可查询Billboard Hot 100、英国OCC、日本Oricon及华语榜单的完整历史数据。'
+      };
+    } catch (e) {
+      return {
+        status: 'error',
+        error: e.message,
+        data: [],
+        source: { name: '查询失败', url: '' },
+        note: '音乐数据查询失败，请稍后重试。'
+      };
+    }
   }
 
   // ============ 电影上映 ============
-  function getMovies(dateStr, scope) {
+  async function getMovies(dateStr, scope) {
     // 检查是否有特定日期的数据
     if (SPECIAL_DATE_DATA[dateStr] && SPECIAL_DATE_DATA[dateStr].movies) {
       return SPECIAL_DATE_DATA[dateStr].movies;
     }
-    return {
-      status: 'unavailable',
-      data: [],
-      source: { name: '资料缺口', url: '' },
-      note: '电影上映历史数据为资料缺口。可通过IMDb、Wikipedia等手动查询特定日期的上映信息。'
-    };
+
+    // 从Wikipedia事件中筛选电影相关内容
+    if (!dateStr) return { status: 'error', error: '缺少日期参数' };
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return { status: 'error', error: '日期格式错误' };
+    const month = parseInt(parts[1]);
+    const day = parseInt(parts[2]);
+
+    try {
+      const url = `https://en.wikipedia.org/api/rest_v1/feed/onthisday/events/${month}/${day}`;
+      const resp = await originalFetch(url, {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'TimeCapsule/1.0 (educational project)'
+        }
+      });
+      if (!resp.ok) throw new Error('Wikipedia API returned ' + resp.status);
+      const data = await resp.json();
+      const events = data.events || [];
+
+      // 电影相关关键词
+      const filmKeywords = ['film', 'movie', 'cinema', 'director', 'actor', 'actress', 'premiere', 'release', 'Academy Award', 'Oscar', 'Cannes', 'Venice Film Festival', 'Berlin Film Festival', 'Golden Globe', 'screen', 'studio', 'Hollywood', 'Bollywood', 'animation', 'documentary'];
+
+      const filmEvents = [];
+      for (const ev of events) {
+        const text = ev.text || '';
+        const lowerText = text.toLowerCase();
+        const isFilm = filmKeywords.some(kw => lowerText.includes(kw.toLowerCase()));
+        if (!isFilm) continue;
+        if (!isPositiveEvent(text)) continue;
+
+        const page = (ev.pages && ev.pages[0]) || {};
+        // 判断是否为爱情片（简单关键词匹配）
+        const isRomance = /romance|romantic|love story|love film|chick flick/i.test(text);
+
+        filmEvents.push({
+          id: 'film-' + ev.year + '-' + text.substring(0, 20).replace(/[^a-z0-9]/gi, ''),
+          title: text,
+          romance: isRomance,
+          releases: [{ date: ev.year ? ev.year + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0') : dateStr, region: '国际' }],
+          genres: ['电影大事记'],
+          url: page.content_urls ? page.content_urls.desktop.page : '',
+          references: page.content_urls ? [page.content_urls.desktop.page] : []
+        });
+      }
+
+      if (filmEvents.length > 0) {
+        return {
+          status: 'ok',
+          data: filmEvents.slice(0, 12),
+          source: { name: 'Wikipedia On This Day - 电影相关事件', url: 'https://en.wikipedia.org/wiki/Wikipedia:On_this_day' },
+          note: '以下为当天发生的电影相关事件（电影首映、电影节、电影奖等），非完整上映列表。完整电影上映历史数据为资料缺口。'
+        };
+      }
+
+      return {
+        status: 'unavailable',
+        data: [],
+        source: { name: '资料缺口', url: '' },
+        note: '当天未查询到电影相关事件。完整电影上映历史数据为资料缺口，可通过IMDb、Wikipedia等手动查询特定日期的上映信息。'
+      };
+    } catch (e) {
+      return {
+        status: 'error',
+        error: e.message,
+        data: [],
+        source: { name: '查询失败', url: '' },
+        note: '电影数据查询失败，请稍后重试。'
+      };
+    }
   }
 
   // ============ 月相/天文（keepsake） ============
@@ -617,9 +777,9 @@
         if (section === 'events') {
           data = await getEvents(date);
         } else if (section === 'music') {
-          data = getMusic(date);
+          data = await getMusic(date);
         } else if (section === 'movies') {
-          data = getMovies(date, params.get('scope') || 'day');
+          data = await getMovies(date, params.get('scope') || 'day');
         } else {
           data = { status: 'error', error: '未知的archive section: ' + section };
           status = 400;
