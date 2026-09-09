@@ -545,16 +545,35 @@
     const day = parseInt(parts[2]);
 
     try {
-      const url = `https://en.wikipedia.org/api/rest_v1/feed/onthisday/events/${month}/${day}`;
-      const resp = await originalFetch(url, {
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'TimeCapsule/1.0 (educational project)'
-        }
-      });
-      if (!resp.ok) throw new Error('Wikipedia API returned ' + resp.status);
-      const data = await resp.json();
-      const events = data.events || [];
+      // 同时获取events和births，保证任何日期都能查到数据
+      const eventsUrl = `https://en.wikipedia.org/api/rest_v1/feed/onthisday/events/${month}/${day}`;
+      const birthsUrl = `https://en.wikipedia.org/api/rest_v1/feed/onthisday/births/${month}/${day}`;
+      
+      const [eventsResp, birthsResp] = await Promise.all([
+        originalFetch(eventsUrl, {
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'TimeCapsule/1.0 (educational project)'
+          }
+        }),
+        originalFetch(birthsUrl, {
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'TimeCapsule/1.0 (educational project)'
+          }
+        })
+      ]);
+      
+      if (!eventsResp.ok) throw new Error('Wikipedia API returned ' + eventsResp.status);
+      const eventsData = await eventsResp.json();
+      const events = eventsData.events || [];
+      
+      // 从births中筛选音乐人
+      let births = [];
+      if (birthsResp.ok) {
+        const birthsData = await birthsResp.json();
+        births = birthsData.births || [];
+      }
 
       // 音乐相关关键词（简洁准确）
       const musicKeywords = [
@@ -597,6 +616,33 @@
         
         // 分别收集同年和所有年份的事件
         if (ev.year === queryYear) {
+          musicEventsSameYear.push({...eventData, rank: musicEventsSameYear.length + 1});
+        }
+        musicEventsAllYears.push({...eventData, rank: musicEventsAllYears.length + 1});
+      }
+
+      // 从births中筛选音乐人，保证任何日期都能查到数据
+      const birthMusicKeywords = ['musician', 'singer', 'songwriter', 'composer', 'rapper', 'pop star', 'rock star', 'guitarist', 'drummer', 'pianist', 'violinist', 'conductor', 'music producer', 'DJ', 'band member', 'vocalist'];
+      for (const ev of births) {
+        const text = ev.text || '';
+        const lowerText = text.toLowerCase();
+        const isMusicPerson = birthMusicKeywords.some(kw => lowerText.includes(kw.toLowerCase()));
+        if (!isMusicPerson) continue;
+        if (!isPositiveEvent(text)) continue;
+
+        const page = (ev.pages && ev.pages[0]) || {};
+        const birthYear = ev.year || queryYear;
+        
+        const eventData = {
+          chartName: birthYear === queryYear ? '音乐人出生' : '历史上的今天 · 音乐人出生',
+          chartDate: dateStr,
+          url: page.content_urls ? page.content_urls.desktop.page : '',
+          rank: 0,
+          title: text + '（出生）',
+          artist: birthYear + '年'
+        };
+        
+        if (birthYear === queryYear) {
           musicEventsSameYear.push({...eventData, rank: musicEventsSameYear.length + 1});
         }
         musicEventsAllYears.push({...eventData, rank: musicEventsAllYears.length + 1});
