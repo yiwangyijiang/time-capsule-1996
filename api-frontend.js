@@ -646,16 +646,35 @@
     const day = parseInt(parts[2]);
 
     try {
-      const url = `https://en.wikipedia.org/api/rest_v1/feed/onthisday/events/${month}/${day}`;
-      const resp = await originalFetch(url, {
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'TimeCapsule/1.0 (educational project)'
-        }
-      });
-      if (!resp.ok) throw new Error('Wikipedia API returned ' + resp.status);
-      const data = await resp.json();
-      const events = data.events || [];
+      // 同时获取events和births，保证任何日期都能查到数据
+      const eventsUrl = `https://en.wikipedia.org/api/rest_v1/feed/onthisday/events/${month}/${day}`;
+      const birthsUrl = `https://en.wikipedia.org/api/rest_v1/feed/onthisday/births/${month}/${day}`;
+      
+      const [eventsResp, birthsResp] = await Promise.all([
+        originalFetch(eventsUrl, {
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'TimeCapsule/1.0 (educational project)'
+          }
+        }),
+        originalFetch(birthsUrl, {
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'TimeCapsule/1.0 (educational project)'
+          }
+        })
+      ]);
+      
+      if (!eventsResp.ok) throw new Error('Wikipedia API returned ' + eventsResp.status);
+      const eventsData = await eventsResp.json();
+      const events = eventsData.events || [];
+      
+      // 从births中筛选电影人
+      let births = [];
+      if (birthsResp.ok) {
+        const birthsData = await birthsResp.json();
+        births = birthsData.births || [];
+      }
 
       // 电影相关关键词（扩大范围，增加更多电影和娱乐相关的词，保证任何日期都能查到数据）
       const filmKeywords = ['film', 'movie', 'cinema', 'director', 'actor', 'actress', 'premiere', 'released', 'Academy Award', 'Oscar', 'Cannes', 'Venice Film Festival', 'Berlin Film Festival', 'Golden Globe', 'Hollywood', 'Bollywood', 'animation', 'documentary', 'film festival', 'motion picture', 'box office', 'blockbuster', 'sequel', 'prequel', 'remake', 'adaptation', 'screenplay', 'script', 'producer', 'filming', 'shooting', 'casting', 'trailer', 'teaser', 'poster', 'cinematography', 'visual effects', 'special effects', '3D film', 'IMAX', 'starring', 'comedy film', 'drama film', 'thriller film', 'horror film', 'sci-fi film', 'science fiction film', 'fantasy film', 'adventure film', 'western film', 'mystery film', 'crime film', 'biography film', 'family film', 'romance film', 'romantic comedy', 'love story film', 'film director', 'film actor', 'film actress', 'film premiere', 'film release', 'film studio', 'film industry', 'film award', 'film nomination', 'film winning', 'film star', 'film celebrity', 'entertainment', 'celebrity', 'famous actor', 'famous actress', 'movie star', 'movie premiere', 'movie release', 'movie theater', 'movie industry', 'movie award', 'movie nomination'];
@@ -689,6 +708,34 @@
         
         // 分别收集同年和所有年份的事件
         if (ev.year === queryYear) {
+          filmEventsSameYear.push(filmData);
+        }
+        filmEventsAllYears.push(filmData);
+      }
+
+      // 从births中筛选电影人，保证任何日期都能查到数据
+      const birthKeywords = ['actor', 'actress', 'director', 'filmmaker', 'screenwriter', 'producer', 'cinematographer', 'film editor', 'film composer', 'movie star', 'film star', 'Hollywood', 'Bollywood'];
+      for (const ev of births) {
+        const text = ev.text || '';
+        const lowerText = text.toLowerCase();
+        const isFilmPerson = birthKeywords.some(kw => lowerText.includes(kw.toLowerCase()));
+        if (!isFilmPerson) continue;
+        if (EXCLUDE_KEYWORDS.some(kw => lowerText.includes(kw.toLowerCase()))) continue;
+
+        const page = (ev.pages && ev.pages[0]) || {};
+        const birthYear = ev.year || queryYear;
+        
+        const filmData = {
+          id: 'film-birth-' + birthYear + '-' + text.substring(0, 20).replace(/[^a-z0-9]/gi, ''),
+          title: text + '（出生）',
+          romance: false,
+          releases: [{ date: birthYear + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0'), region: '国际' }],
+          genres: birthYear === queryYear ? ['电影人出生'] : ['历史上的今天 · 电影人出生'],
+          url: page.content_urls ? page.content_urls.desktop.page : '',
+          references: page.content_urls ? [page.content_urls.desktop.page] : []
+        };
+        
+        if (birthYear === queryYear) {
           filmEventsSameYear.push(filmData);
         }
         filmEventsAllYears.push(filmData);
