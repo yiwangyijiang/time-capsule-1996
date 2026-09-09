@@ -335,11 +335,13 @@
           id: '1996-yinengjing-ziji',
           title: '伊能静发行国语专辑《自己》',
           year: 1996,
-          dateBasis: 'released',
-          country: '国内',
+          dateBasis: 'occurred',
+          country: '中国台湾',
           domestic: true,
           summary: '台湾歌手伊能静通过华纳音乐发行国语专辑《自己》，收录《自己》《小狗》等歌曲，是其音乐生涯的重要作品。',
-          source: { name: '华纳音乐 / 台湾唱片工业年鉴', url: '' },
+          url: '',
+          sourceLabel: '华纳音乐 / 已核验资料',
+          references: [],
           tags: ['音乐', '文化', '台湾']
         }
       ],
